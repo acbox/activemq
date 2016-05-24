@@ -29,8 +29,11 @@ class activemq(
   $package                 = $activemq::params::package,
   $ensure                  = $activemq::params::ensure,
   $instance                = $activemq::params::instance,
+  $kahadb_datadir          = $activemq::params::kahadb_datadir,
+  $kahadb_opts             = $activemq::params::kahadb_opts,
   $webconsole              = $activemq::params::webconsole,
   $server_config           = $activemq::params::server_config,
+  $server_config_dir       = $activemq::params::server_config_dir,
   $server_config_show_diff = $activemq::params::server_config,
   $mq_broker_name          = $activemq::params::mq_broker_name,
   $mq_admin_username       = $activemq::params::mq_admin_username,
@@ -38,6 +41,14 @@ class activemq(
   $mq_cluster_username     = $activemq::params::mq_cluster_username,
   $mq_cluster_password     = $activemq::params::mq_cluster_password,
   $mq_cluster_brokers      = $activemq::params::mq_cluster_brokers,
+  $mq_connectors           = $activemq::params::mq_connectors,
+  $ssl                     = $activemq::params::ssl,
+  $log4j                   = $activemq::params::log4j,
+  $log4j_template          = $activemq::params::log4j_template,
+  $log4j_stdout            = $activemq::params::log4j_stdout,
+  $log4j_logdir            = $activemq::params::log4j_logdir,
+  $owner                   = $activemq::params::owner,
+  $owner                   = $activemq::params::group,
 ) inherits activemq::params {
 
   validate_re($ensure, '^running$|^stopped$')
@@ -93,9 +104,24 @@ class activemq(
     instance                => $instance,
     package                 => $package_real,
     server_config           => $server_config_real,
+    server_config_dir       => $server_config_dir,
     server_config_show_diff => $server_config_show_diff,
+    kahadb_datadir          => $kahadb_datadir,
+    kahadb_opts             => $kahadb_opts,
+    mq_connectors           => $mq_connectors,
     require                 => Class['activemq::packages'],
     notify                  => Class['activemq::service'],
+  }
+  class { 'activemq::log4j':
+    log4j_template    => $log4j_template,
+    log4j_stdout      => $log4j_stdout,
+    log4j_logdir      => $log4j_logdir,
+    owner             => $owner,
+    group             => $group,
+    server_config_dir => $server_config_dir,
+    log4j             => $log4j,
+    require           => Class['activemq::config'],
+    notify            => Class['activemq::service'],
   }
 
   class { 'activemq::service':

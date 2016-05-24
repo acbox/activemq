@@ -62,7 +62,18 @@
   <%- end -%>
         </networkConnectors>
 <%- end -%>
-
+<% if @kahadb_datadir %>
+ 	<persistenceAdapter>
+                <kahaDB 
+                        directory="<%= @kahadb_datadir %>"
+                        <% if @kahadb_opts -%>
+                        <% @kahadb_opts.each do |key, value| -%>
+                        <%= key %>="<%= value  %>"
+                        <% end -%>
+                <%- end %>
+                />
+	</persistenceAdapter>
+<% end %>
         <plugins>
           <statisticsBrokerPlugin/>
           <simpleAuthenticationPlugin>
@@ -103,10 +114,14 @@
             </systemUsage>
         </systemUsage>
 
+        <%- if @mq_connectors -%>
         <transportConnectors>
-            <transportConnector name="openwire" uri="tcp://0.0.0.0:61616"/>
-            <transportConnector name="stomp+nio" uri="stomp://0.0.0.0:61613"/>
+                    <%- @mq_connectors.each do |pkey, transport| -%>
+                     <transportConnector name=<%= pkey -%>
+                    <%- transport.each do |key, value| -%>" "<%= key %>="<%= value  -%>"<% end -%> />
+            <%- end %>
         </transportConnectors>
+        <% end %>
     </broker>
 
 <% if @webconsole_real -%>
