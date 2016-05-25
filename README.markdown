@@ -36,8 +36,8 @@ node /eu-operation*./ inherits default
   $activemq_truststorepath='/etc/activemq/ca.jks'
   $activemq_truststorepass='puppet'
 
-  $activemq_keystorestorepath='/etc/activemq/activemq.jks'
-  $activemq_keystorestorepass='puppet'
+  $activemq_keystorepath='/etc/activemq/activemq.jks'
+  $activemq_keystorepass='puppet'
 
   java_ks { 'puppetca:keystore':
     ensure          => latest,
@@ -46,11 +46,11 @@ node /eu-operation*./ inherits default
     password        => $activemq_truststorepass,
     trustcacerts    => true,
   }->
-  java_ks { "${fqdn}:${activemq_keystorestorepath}":
+  java_ks { "${fqdn}:${activemq_keystorepath}":
     ensure         => latest,
     certificate    => '/var/lib/puppet/ssl/certs/mycert.pem',
     private_key    => '/var/lib/puppet/ssl/private_keys/mykey.pem',
-    password       => $activemq_keystorestorepass,
+    password       => $activemq_keystorepass,
   }->
   class {'activemq':
     kahadb_opts        => { journalMaxFileLength => "32mb" },
