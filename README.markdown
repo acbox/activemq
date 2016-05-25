@@ -1,12 +1,15 @@
 # ActiveMQ #
 
 This module configures ActiveMQ.  It is primarily designed to work with
-MCollective and the Oracle Java runtime on an RHEL or EL variant.
+MCollective on Debian like systems. Ii is rework of https://github.com/puppetlabs/puppetlabs-activemq 
+module.
 
  * [ActiveMQ](http://activemq.apache.org/)
  * [MCollective](http://www.puppetlabs.com/mcollective/introduction/)
 
-# Quick Start #
+## Usage
+
+### Default activemq instalation
 
 The example in the tests directory provides a good example of how the ActiveMQ
 module may be used.  In addition, the [MCollective
@@ -14,8 +17,6 @@ Module](http://forge.puppetlabs.com/puppetlabs/mcollective) provides a good
 example of a service integrated with this ActiveMQ module.
 
     node default {
-      notify { 'alpha': }
-      ->
       class  { 'java':
         distribution => 'jdk',
         version      => 'latest',
@@ -23,18 +24,68 @@ example of a service integrated with this ActiveMQ module.
       ->
       class  { 'activemq': }
       ->
-      notify { 'omega': }
     }
+
+### Activemq with ssl 
+Example of instalation with ssl support for storm.
+I used java_ks module for java certificate store creation from my X.509 keys/certs
+
+```
+node /eu-operation*./ inherits default
+{
+  $activemq_truststorepath='/etc/activemq/ca.jks'
+  $activemq_truststorepass='puppet'
+
+  $activemq_keystorestorepath='/etc/activemq/activemq.jks'
+  $activemq_keystorestorepass='puppet'
+
+  java_ks { 'puppetca:keystore':
+    ensure          => latest,
+    certificate     => '/var/lib/puppet/ssl/certs/ca.pem',
+    target          => $activemq_truststorepath,
+    password        => $activemq_truststorepass,
+    trustcacerts    => true,
+  }->
+  java_ks { "${fqdn}:${activemq_keystorestorepath}":
+    ensure         => latest,
+    certificate    => '/var/lib/puppet/ssl/certs/mycert.pem',
+    private_key    => '/var/lib/puppet/ssl/private_keys/mykey.pem',
+    password       => $activemq_keystorestorepass,
+  }->
+  class {'activemq':
+    kahadb_opts        => { journalMaxFileLength => "32mb" },
+    ssl                => true,
+    ssl_truststorepath => $activemq_truststorepath,
+    ssl_truststorepass => $activemq_truststorepass,
+    ssl_keystorepath   => $activemq_keystorepath,
+    ssl_keystorepass   => $activemq_keystorepass,
+
+  }
+
+}
+```
+
+## Public Classes
+
+#### Class: `activemq`
+  
+##### version
+Version of activemq to install 
+
+##### package
+Package name= 'activemq'
+
+
 
 # Contact Information #
 
- * Jeff McCune <jeff@puppetlabs.com>
+ * Marian Schmotzer <smoco01@gmail.com>
  * [Module Source Code](https://github.com/puppetlabs/puppetlabs-activemq)
 
 # Related Work #
 
-The [lab42-activemq](http://forge.puppetlabs.com/lab42/activemq) module
-provided much of the basis for this module.
+The [puppetlabs-activemq](https://github.com/puppetlabs/puppetlabs-activemq) module
+provided basics for this module.
 
 # Web Console #
 

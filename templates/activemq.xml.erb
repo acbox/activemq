@@ -114,11 +114,10 @@
             </systemUsage>
         </systemUsage>
 
-        <%- if @mq_connectors -%>
+        <%- if @mq_connectors_real -%>
         <transportConnectors>
-                    <%- @mq_connectors.each do |pkey, transport| -%>
-                     <transportConnector name=<%= pkey -%>
-                    <%- transport.each do |key, value| -%>" "<%= key %>="<%= value  -%>"<% end -%> />
+                    <%- @mq_connectors_real.each do |pkey, transport| -%>
+                     <transportConnector name="<%= pkey -%>" <%- transport.each do |key, value| -%> <%= key %>="<%= value  -%>"<% end -%> />
             <%- end %>
         </transportConnectors>
         <% end %>

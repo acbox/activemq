@@ -22,8 +22,22 @@ class activemq::params {
   $owner                   = 'activemq'
   $group                   = 'activemq'
   $ssl                     = false
-  $mq_connectors           = { 
-        'stomp+nio' => {  uri => "stomp://0.0.0.0:61613" } 
+  $ssl_keystorepath        = undef
+  $ssl_keystorepass        = 'puppet'
+  $ssl_truststorepath      = undef
+  $ssl_truststorepass      = 'puppet'
+  $activemq_opts           = '-Dorg.apache.activemq.UseDedicatedTaskRunner=true'
+  $java_xmx                = '512M'
+  $java_xms                = '512M'
+  $java_home               = '/usr/lib/jvm/default-java/'
+
+
+  $mq_connectors           = undef
+  $mq_connectors_ssl       = {
+    'stomp+ssl' => {  uri => "stomp+ssl://0.0.0.0:61614?needClientAuth=true" }
+  }
+  $mq_connectors_default   = {
+    'stomp+nio' => {  uri => "stomp://0.0.0.0:61613" }
   }
   # Debian does not include the webconsole
   case $::osfamily {

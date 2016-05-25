@@ -17,6 +17,8 @@ class activemq::config (
   $group = 'activemq',
   $kahadb_datadir,
   $kahadb_opts,
+  $java_home,
+  $activemq_opts,
   $instance,
   $package,
   $mq_connectors,
@@ -67,5 +69,10 @@ class activemq::config (
     mode    => '0600',
     content => $server_config_real,
   }
-
+  
+  file { "/usr/share/activemq/activemq-options":
+    ensure  => file,
+    mode    => '0644',
+    content => template("${module_name}/activemq-options.erb"),
+  }
 }
