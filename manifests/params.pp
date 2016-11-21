@@ -14,6 +14,7 @@ class activemq::params {
   $mq_cluster_password     = 'secret'
   $mq_cluster_brokers      = []
   $kahadb_datadir          = '/var/lib/activemq/data/'
+  $persistent              = true
   $kahadb_opts             = undef
   $log4j                   = true
   $log4j_template          = "${module_name}/log4j.properties.erb"

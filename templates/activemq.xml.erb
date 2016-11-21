@@ -15,9 +15,9 @@
 
 <% end -%>
 <% if @version == 'present' or @version == 'latest' or scope.function_versioncmp([@version, '5.9']) < 0 -%>
-    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true">
+	    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" persistent="<%= @persistent %>">
 <% else -%>
-    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" dataDirectory="${activemq.data}">
+	    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" dataDirectory="${activemq.data}" persistent="<%= @persistent %>" >
 <% end -%>
         <managementContext>
             <managementContext createConnector="false"/>

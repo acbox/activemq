@@ -31,6 +31,7 @@ class activemq(
   $instance                = $activemq::params::instance,
   $kahadb_datadir          = $activemq::params::kahadb_datadir,
   $kahadb_opts             = $activemq::params::kahadb_opts,
+  $persistent              = $activemq::params::persistent,
   $webconsole              = $activemq::params::webconsole,
   $server_config           = $activemq::params::server_config,
   $server_config_dir       = $activemq::params::server_config_dir,
