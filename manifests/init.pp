@@ -42,6 +42,7 @@ class activemq(
   $mq_cluster_username     = $activemq::params::mq_cluster_username,
   $mq_cluster_password     = $activemq::params::mq_cluster_password,
   $mq_cluster_brokers      = $activemq::params::mq_cluster_brokers,
+  $authorization           = $activemq::params::authorization,
   $mq_connectors           = $activemq::params::mq_connectors,
   $ssl                     = $activemq::params::ssl,
   $ssl_keystorepath        = $activemq::params::ssl_keystorepath,
@@ -58,7 +59,10 @@ class activemq(
   $java_xmx                = $activemq::params::java_xmx,
   $java_xms                = $activemq::params::java_xms,
   $java_home               = $activemq::params::java_home,
-
+  $memory_usage_limit      = $activemq::params::memory_usage_limit,
+  $store_usage_limit       = $activemq::params::store_usage_limit,
+  $temp_usage_limit        = $activemq::params::temp_usage_limit,
+  $my_ip                   = $::ipaddress,
 ) inherits activemq::params {
 
   validate_re($ensure, '^running$|^stopped$')
@@ -85,6 +89,24 @@ class activemq(
     }
     $activemq_opts_ssl="${activemq_opts_keystore} ${activemq_opts_truststore}"
   }
+  
+
+  # $cluster_nodes_real = delete($cluster_nodes,$my_ip)
+
+  #check which persistence db to use
+  $persistence_db_datadir = $leveldb_datadir ?{
+    undef   => $kahadb_datadir,
+    default => $leveldb_datadir,
+  }
+  $persistence_db_opts = $leveldb_datadir ?{
+    undef   => $kahadb_opts,
+    default => $leveldb_opts,
+  }
+  $persistence_db_type = $leveldb_datadir ?{
+    undef   => 'kahaDB',
+    default => 'LevelDB',
+  }
+
   $activemq_opts_real = "-Xms${java_xms} -Xmx${java_xmx} $activemq_opts $activemq_opts_ssl"
   $package_real = $package
   $version_real = $version
@@ -94,7 +116,7 @@ class activemq(
   $mq_admin_password_real       = $mq_admin_password
   $mq_cluster_username_real     = $mq_cluster_username
   $mq_cluster_password_real     = $mq_cluster_password
-  $mq_cluster_brokers_real      = $mq_cluster_brokers
+  $mq_cluster_brokers_real      = delete($mq_cluster_brokers,[$::fqdn,$::hostname,$my_ip])
 
   if $mq_admin_username_real == 'admin' {
     warning '$mq_admin_username is set to the default value.  This should be changed.'
@@ -137,11 +159,14 @@ class activemq(
     server_config           => $server_config_real,
     server_config_dir       => $server_config_dir,
     server_config_show_diff => $server_config_show_diff,
-    kahadb_datadir          => $kahadb_datadir,
-    kahadb_opts             => $kahadb_opts,
+    persistence_db_datadir  => $persistence_db_datadir,
+    persistence_db_opts     => $persistence_db_opts,
+    persistence_db_type     => $persistence_db_type,
     mq_connectors           => $mq_connectors_real,
+    cluster_nodes           => $cluster_nodes_real,
     java_home               => $java_home,
     activemq_opts           => $activemq_opts_real,
+    persistent              => $persistent,
     require                 => Class['activemq::packages'],
     notify                  => Class['activemq::service'],
   }

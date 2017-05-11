@@ -14,9 +14,11 @@ class activemq::params {
   $mq_cluster_password     = 'secret'
   $mq_cluster_brokers      = []
   $kahadb_datadir          = '/var/lib/activemq/data/'
-  $persistent              = true
   $kahadb_opts             = undef
+  $leveldb_datadir         = undef
+  $leveldb_opts            = undef
   $log4j                   = true
+  $persistent              = true
   $log4j_template          = "${module_name}/log4j.properties.erb"
   $log4j_stdout            = false
   $log4j_logdir            = '/var/log/activemq/'
@@ -31,7 +33,9 @@ class activemq::params {
   $java_xmx                = '512M'
   $java_xms                = '512M'
   $java_home               = '/usr/lib/jvm/default-java/'
-
+  $memory_usage_limit      = $java_xmx
+  $store_usage_limit       = '32M'
+  $temp_usage_limit        = '32M'
 
   $mq_connectors           = undef
   $mq_connectors_ssl       = {

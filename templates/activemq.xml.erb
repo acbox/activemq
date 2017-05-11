@@ -15,59 +15,31 @@
 
 <% end -%>
 <% if @version == 'present' or @version == 'latest' or scope.function_versioncmp([@version, '5.9']) < 0 -%>
-	    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" persistent="<%= @persistent %>">
+	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" persistent="<%= @persistent %>">
 <% else -%>
-	    <broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" dataDirectory="${activemq.data}" persistent="<%= @persistent %>" >
+	<broker xmlns="http://activemq.apache.org/schema/core" brokerName="<%= @mq_broker_name %>" useJmx="true" dataDirectory="${activemq.data}" persistent="<%= @persistent %>" >
 <% end -%>
         <managementContext>
             <managementContext createConnector="false"/>
         </managementContext>
 
-<% if @mq_cluster_brokers_real.length > 1 -%>
+<% if @mq_cluster_brokers_real -%>
         <!--
           Configure network connectors for a network of brokers. 
           In this config, all brokers are connected to each other.
         -->
         <networkConnectors>
-  <%- @mq_cluster_brokers_real.each do |broker| -%>
-    <%- if broker != mq_broker_name -%>
-          <networkConnector
-                name="<%= @mq_broker_name %>-<%= broker %>-topics"
-                uri="static:(tcp://<%= broker %>:61616)"
-                userName="<%= @mq_cluster_username_real %>"
-                password="<%= @mq_cluster_password_real %>"
-                duplex="false"
-                decreaseNetworkConsumerPriority="true"
-                networkTTL="2"
-                dynamicOnly="true">
-                <excludedDestinations>
-                        <queue physicalName=">" />
-                </excludedDestinations>
-          </networkConnector>
-          <networkConnector
-                name="<%= @mq_broker_name %>-<%= broker %>-queues"
-                uri="static:(tcp://<%= broker %>:61616)"
-                userName="<%= @mq_cluster_username_real %>"
-                password="<%= @mq_cluster_password_real %>"
-                duplex="false"
-                decreaseNetworkConsumerPriority="true"
-                networkTTL="2"
-                dynamicOnly="true"
-                conduitSubscriptions="false">
-                <excludedDestinations>
-                        <topic physicalName=">" />
-                </excludedDestinations>
-          </networkConnector>
-    <%- end -%>
-  <%- end -%>
+    <%- @mq_cluster_brokers_real.each do |pkey, connector| -%>
+        <networkConnector name="<%= pkey  %>" <%- connector.each do |key, value| -%> <%= key %>="<%= value  -%>" <% end -%> />
+      <%- end -%>
         </networkConnectors>
 <%- end -%>
-<% if @kahadb_datadir %>
+<% if @persistent == true  %>
  	<persistenceAdapter>
-                <kahaDB 
-                        directory="<%= @kahadb_datadir %>"
-                        <% if @kahadb_opts -%>
-                        <% @kahadb_opts.each do |key, value| -%>
+         <<%= @persistence_db_type %>
+                        directory="<%= @persistence_db_datadir %>"
+                        <% if @persistence_db_opts -%>
+                        <% @persistence_db_opts.each do |key, value| -%>
                         <%= key %>="<%= value  %>"
                         <% end -%>
                 <%- end %>
@@ -75,42 +47,40 @@
 	</persistenceAdapter>
 <% end %>
         <plugins>
-          <statisticsBrokerPlugin/>
-          <simpleAuthenticationPlugin>
-            <users>
-<% if @mq_cluster_brokers_real.length > 1 -%>
-              <authenticationUser username="<%= @mq_cluster_username_real %>" password="<%= @mq_cluster_password_real %>" groups="admins,everyone"/>
-<% end -%>
-              <authenticationUser username="mcollective" password="marionette" groups="mcollective,everyone"/>
-              <authenticationUser username="<%= @mq_admin_username_real %>" password="<%= @mq_admin_password_real %>" groups="mcollective,admins,everyone"/>
-            </users>
-          </simpleAuthenticationPlugin>
+            <statisticsBrokerPlugin/>
+
+<%- if @authorization -%>
           <authorizationPlugin>
             <map>
               <authorizationMap>
                 <authorizationEntries>
-                  <authorizationEntry queue=">" write="admins" read="admins" admin="admins" />
-                  <authorizationEntry topic=">" write="admins" read="admins" admin="admins" />
-                  <authorizationEntry topic="mcollective.>" write="mcollective" read="mcollective" admin="mcollective" />
-                  <authorizationEntry queue="mcollective.>" write="mcollective" read="mcollective" admin="mcollective" />
-                  <authorizationEntry topic="ActiveMQ.Advisory.>" read="everyone" write="everyone" admin="everyone"/>
+<%- @authorization.each do |pkey, name| -%>
+                   <authorizationEntry  <%- authorization.each do |key, value| -%> <%= key %>="<%= value  -%>"<% end -%> />
+<%- end %>
                 </authorizationEntries>
               </authorizationMap>
             </map>
           </authorizationPlugin>
+<% end -%>
         </plugins>
 
         <systemUsage>
             <systemUsage>
+<% if @memory_usage_limit -%>
                 <memoryUsage>
-                    <memoryUsage limit="20 mb"/>
+                    <memoryUsage limit="<%= @memory_usage_limit %>"/>
                 </memoryUsage>
+<% end -%>
+<% if @store_usage_limit -%>
                 <storeUsage>
-                    <storeUsage limit="1 gb" name="foo"/>
+                    <storeUsage limit="<%= @store_usage_limit %>" />
                 </storeUsage>
+<% end -%>
+<% if @temp_usage_limit -%>
                 <tempUsage>
-                    <tempUsage limit="100 mb"/>
+                    <tempUsage limit="<%= @temp_usage_limit %>"/>
                 </tempUsage>
+<% end -%>
             </systemUsage>
         </systemUsage>
 

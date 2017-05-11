@@ -13,16 +13,19 @@
 class activemq::config (
   $server_config,
   $server_config_dir,
-  $owner = 'activemq',
-  $group = 'activemq',
-  $kahadb_datadir,
-  $kahadb_opts,
+  $owner           = 'activemq',
+  $group           = 'activemq',
   $java_home,
   $activemq_opts,
   $instance,
   $package,
   $mq_connectors,
+  $cluster_nodes,
+  $persistent,
   $server_config_show_diff = 'UNSET',
+  $persistence_db_datadir,
+  $persistence_db_opts,
+  $persistence_db_type,
 ) {
 
   # Resource defaults
@@ -34,14 +37,15 @@ class activemq::config (
     require => Package[$package],
   }
 
-  if $kahadb_datadir {
-    file { $kahadb_datadir:
+  if $persistence_db_datadir {
+    file { $persistence_db_datadir:
       ensure => directory,
+      before => File["${server_config_dir}/activemq.xml"],
     }
   }
 
-  if $kahadb_opts {
-    validate_hash($kahadb_opts)
+  if $persistence_db_opts {
+    validate_hash($persistence_db_opts)
   }
 
   if $server_config_show_diff != 'UNSET' {
@@ -54,7 +58,7 @@ class activemq::config (
 
   $server_config_real = $server_config
 
-  file { $server_config_dir:
+  file { [$server_config_dir,'/etc/activemq/instances-enabled']:
     ensure => directory,
   }
 
