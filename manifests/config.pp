@@ -74,9 +74,17 @@ class activemq::config (
     content => $server_config_real,
   }
   
-  file { "/usr/share/activemq/activemq-options":
+  file { '/usr/share/activemq/activemq-options':
     ensure  => file,
     mode    => '0644',
     content => template("${module_name}/activemq-options.erb"),
+  }
+  if $::osfamily == 'RedHat' {
+    file { '/etc/sysconfig/activemq':
+      ensure  => file,
+      mode    => '0644',
+      content => "ACTIVEMQ_OPTS_MEMORY=\"${activemq_opts}\""
+    }
+  
   }
 }
